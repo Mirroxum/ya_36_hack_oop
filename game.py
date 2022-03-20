@@ -1,5 +1,6 @@
 from typing import List, Dict, Type
 import random
+from unicodedata import name
 
 
 class Thing:
@@ -46,16 +47,17 @@ class Person:
                 get_thing = random.choice(things) #получили предмет
                 received_items_name.append(get_thing.name_thing) #записали в список
                 received_items.append(get_thing)
+                self.basic_hp += get_thing.value_hp
+                self.basic_atk += get_thing.value_atk
+                self.basic_percent_def += get_thing.percent_def
                 things.remove(get_thing) #удалили элемент
-            print(f'{self.name_person} получает {count_things} предмет(а): {", ".join(received_items_name)}')
+            print(f'{self.name_person} получает {count_things} предмет(а): {", ".join(received_items_name)}. Теперь у {self.name_person}: Жизни-{self.basic_hp} Атака-{self.basic_atk} Процент защиты-{self.basic_percent_def:.3f}')
             return received_items
 
-    def count_items():
-        return count_items
-
-    def subtraction_hp():
+    def subtraction_hp(self, attack_damage:int):
         '''Вычитание жизней на основе полученной атаки'''
-        pass
+        self.basic_hp -= attack_damage - attack_damage * self.basic_percent_def
+        return attack_damage - attack_damage * self.basic_percent_def
 
 class Paladin(Person):
     '''Класс Паладина'''
@@ -142,9 +144,25 @@ def del_things_from_chest(things, del_things=None):
                     things.remove(i)
         return things
 
+def battle_arena(persons):
+    while len(persons) > 1:
+        atk_person = persons[random.randint(0, len(persons)-1)]
+        def_person = persons[random.randint(0, len(persons)-1)]
+        if atk_person != def_person:
+            damage = def_person.subtraction_hp(atk_person.basic_atk)
+            print (f'{atk_person.name_person} наносит удар по {def_person.name_person} на {damage:.1f}')
+            if def_person.basic_hp <= 0:
+                print (f'{def_person.name_person} умирает')
+                persons.remove(def_person)
+    print (f'{persons[0].name_person} остался один. Поздравляем с победой!')
+
+
+
 things = generate_things(20)
 persons = generate_persons(10)
 
 for i in persons:
     del_things = i.set_things(things)
     things = del_things_from_chest(things, del_things)
+
+battle_arena(persons)
